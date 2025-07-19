@@ -270,7 +270,7 @@ fn strip_str<'a>(text: &'a str) -> &'a str {
         .unwrap_or(text)
 }
 
-fn default_network_service() -> Result<String> {
+pub fn default_network_service() -> Result<String> {
     let socket = UdpSocket::bind("0.0.0.0:0")?;
     socket.connect("1.1.1.1:80")?;
     let ip = socket.local_addr()?.ip();
@@ -291,7 +291,7 @@ fn default_network_service() -> Result<String> {
     }
 }
 
-fn default_network_service_by_ns() -> Result<String> {
+pub fn default_network_service_by_ns() -> Result<String> {
     let output = networksetup().arg("-listallnetworkservices").output()?;
     let stdout = from_utf8(&output.stdout).or(Err(Error::ParseStr("output".into())))?;
     let mut lines = stdout.split('\n');
@@ -391,10 +391,27 @@ fn listnetworkserviceorder() -> Result<Vec<(String, String, String)>> {
     Ok(services)
 }
 
-#[test]
-fn test_order() {
-    let services = listnetworkserviceorder().unwrap();
-    for (service, port, device) in services {
-        println!("service: {}, port: {}, device: {}", service, port, device);
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_order() {
+        let services = listnetworkserviceorder().unwrap();
+        for (service, port, device) in services {
+            println!("service: {}, port: {}, device: {}", service, port, device);
+        }
+    }
+
+    #[test]
+    fn test_default_network_service() {
+        let service = default_network_service().unwrap();
+        println!("service: {}", service);
+    }
+
+    #[test]
+    fn test_default_network_service_by_ns() {
+        let service = default_network_service_by_ns().unwrap();
+        println!("service: {}", service);
     }
 }
